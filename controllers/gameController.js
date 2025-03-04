@@ -20,7 +20,7 @@ export const playGame = async (req, res) => {
     const incorrectSelected = selectedClues.filter(clue => !correctClues.includes(clue));
 
     // Calculate score
-    const prevScore = user.score;
+    const prevScore = user.score ?? 0; // Ensure score is not undefined
     const scoreGained = correctSelected.length * 5;
     const scoreLost = incorrectSelected.length * 2;
     user.score += scoreGained - scoreLost;
