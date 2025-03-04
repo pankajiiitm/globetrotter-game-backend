@@ -1,83 +1,102 @@
-import mongoose from 'mongoose';
-import dotenv from 'dotenv';
-import Destination from './models/Destination.js';
-import connectDB from './config/db.js';
+import mongoose from "mongoose";
+import dotenv from "dotenv";
+import fs from "fs";
+import axios from "axios";
+import Destination from "./models/Destination.js";
+import connectDB from "./config/db.js";
 
 dotenv.config();
 connectDB();
 
-const destinations = [
-  {
-    "city": "Paris",
-    "country": "France",
-    "clues": [
-      "This city is home to a famous tower that sparkles every night.",
-      "Known as the 'City of Love' and a hub for fashion and art."
-    ],
-    "fun_fact": [
-      "The Eiffel Tower was supposed to be dismantled after 20 years but was saved because it was useful for radio transmissions!",
-      "Paris has only one stop sign in the entire city—most intersections rely on priority-to-the-right rules."
-    ],
-    "trivia": [
-      "This city is famous for its croissants and macarons. Bon appétit!",
-      "Paris was originally a Roman city called Lutetia."
-    ]
-  },
-  {
-    "city": "Tokyo",
-    "country": "Japan",
-    "clues": [
-      "This city has the busiest pedestrian crossing in the world.",
-      "You can visit an entire district dedicated to anime, manga, and gaming."
-    ],
-    "fun_fact": [
-      "Tokyo was originally a small fishing village called Edo before becoming the bustling capital it is today!",
-      "More than 14 million people live in Tokyo, making it one of the most populous cities in the world."
-    ],
-    "trivia": [
-      "The city has over 160,000 restaurants, more than any other city in the world.",
-      "Tokyo’s subway system is so efficient that train delays of just a few minutes come with formal apologies."
-    ]
-  },
-  {
-    "city": "New York",
-    "country": "USA",
-    "clues": [
-      "Home to a green statue gifted by France in the 1800s.",
-      "Nicknamed 'The Big Apple' and known for its Broadway theaters."
-    ],
-    "fun_fact": [
-      "The Statue of Liberty was originally a copper color before oxidizing to its iconic green patina.",
-      "Times Square was once called Longacre Square before being renamed in 1904."
-    ],
-    "trivia": [
-      "New York City has 468 subway stations, making it one of the most complex transit systems in the world.",
-      "The Empire State Building has its own zip code: 10118."
-    ]
+const cities =  [
+  { city: "Paris", country: "France" },
+  { city: "Tokyo", country: "Japan" },
+  { city: "New York", country: "USA" },
+  { city: "London", country: "UK" },
+  { city: "Sydney", country: "Australia" },
+  { city: "Berlin", country: "Germany" },
+  { city: "Rome", country: "Italy" },
+  { city: "Toronto", country: "Canada" },
+  { city: "Moscow", country: "Russia" },
+  { city: "Dubai", country: "UAE" },
+  { city: "Mumbai", country: "India" },
+  { city: "Beijing", country: "China" },
+  { city: "Rio de Janeiro", country: "Brazil" },
+  { city: "Cape Town", country: "South Africa" },
+  { city: "Bangkok", country: "Thailand" },
+  { city: "Singapore", country: "Singapore" },
+  { city: "Istanbul", country: "Turkey" },
+  { city: "Seoul", country: "South Korea" },
+  { city: "Mexico City", country: "Mexico" },
+  { city: "Los Angeles", country: "USA" },
+  { city: "Madrid", country: "Spain" },
+  { city: "Vienna", country: "Austria" },
+  { city: "Stockholm", country: "Sweden" },
+  { city: "Lisbon", country: "Portugal" },
+  { city: "Hanoi", country: "Vietnam" },
+  { city: "Jakarta", country: "Indonesia" },
+  { city: "Buenos Aires", country: "Argentina" },
+  { city: "Cairo", country: "Egypt" },
+  { city: "Nairobi", country: "Kenya" },
+  { city: "Helsinki", country: "Finland" },
+];
+
+const generateCityData = async () => {
+  const cityData = [];
+
+  for (const { city, country } of cities) {
+    try {
+      const response = await axios.get(
+        `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(city)}`
+      );
+      const extract = response.data.extract || "";
+
+      const sentences = extract.split(". ");
+
+      cityData.push({
+        city,
+        country,
+        clues: [
+          sentences.length > 0 ? `This city is known for ${sentences[0]}.` : "Clue not available.",
+          `It is one of the most visited places in ${country}.`,
+        ],
+        fun_fact: [
+          sentences.length > 1 ? `Did you know? ${sentences[1]}.` : "Fun fact not available.",
+          sentences.length > 2 ? `A famous landmark here is ${sentences[2]}.` : "Landmark info missing.",
+        ],
+        trivia: [
+          sentences.length > 3 ? `The city's history includes ${sentences[3]}.` : "Historical info missing.",
+          `Many tourists love visiting ${city} for its culture and food!`,
+        ],
+      });
+    } catch (error) {
+      console.error(`Failed to fetch data for ${city}:`, error.message);
+    }
   }
-]
 
-
+  return cityData;
+};
 
 const importData = async () => {
   try {
     await connectDB();
 
-    // Wait until Mongoose connection is actually open
+    // Wait for Mongoose connection
     if (mongoose.connection.readyState !== 1) {
-      console.log('Waiting for database connection...');
-      await new Promise((resolve) => mongoose.connection.once('open', resolve));
+      console.log("Waiting for database connection...");
+      await new Promise((resolve) => mongoose.connection.once("open", resolve));
     }
 
-    console.log('Database connection established, proceeding with import...');
+    console.log("Fetching city data...");
+    const cityData = await generateCityData();
 
-    await Destination.deleteMany(); // Ensure delete operation completes
-    await Destination.insertMany(destinations);
+    console.log("Inserting data into MongoDB...");
+    await Destination.insertMany(cityData);
 
-    console.log('Data Imported Successfully!');
+    console.log("Data Imported Successfully!");
     process.exit();
   } catch (error) {
-    console.error('Error with data import:', error);
+    console.error("Error with data import:", error);
     process.exit(1);
   }
 };

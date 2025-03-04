@@ -36,19 +36,3 @@ export const getRandomDestination = async (req, res) => {
   }
 };
 
-
-
-// // @desc    Get random destinations
-// // @route   GET /api/destinations/random
-// // @access  Public
-// export const getRandomDestinations = async (req, res) => {
-//   try {
-//     const destinations = await Destination.aggregate([{ $sample: { size: 3 } }]);
-//     res.json(destinations);
-//   } catch (error) {
-//     console.error('Error fetching destinations:', error);
-//     res.status(500).json({ message: 'Server Error' });
-//   }
-// };
-
-// import Destination from '../models/Destination.js';
