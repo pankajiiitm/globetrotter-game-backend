@@ -3,19 +3,19 @@ import User from "../models/User.js";
 
 // Generate invite link
 export const generateInviteLink = async (req, res) => {
-  const { inviter } = req.body;
+  const { inviter, invitee } = req.body;
 
   try {
-    const user = await User.findOne({ username: inviter });
+    const user = await User.findOne({ username: invitee });
     if (!user) return res.status(404).json({ message: 'User not found' });
 
     const inviteLink = `https://localhost:3000/game?inviter=${inviter}&score=${user.score}`;
 
     // Store invitation in DB
-    const newInvite = new Invitation({ inviter, score: user.score });
+    const newInvite = new Invitation({ inviter, score: user.score , invitee});
     await newInvite.save();
 
-    res.json({ inviteLink });
+    res.json({ inviteLink, invitee });
   } catch (error) {
     res.status(500).json({ message: 'Error generating invite link' });
   }
