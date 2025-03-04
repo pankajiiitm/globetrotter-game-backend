@@ -12,7 +12,7 @@ export const generateInviteLink = async (req, res) => {
       await user.save();
     }
 
-    const inviteLink = `https://localhost:3000/game?inviter=${inviter}&invitee=${invitee}&score=${user.score}`;
+    const inviteLink = `https://67c6d4db6eba280062313c4f--dazzling-squirrel-e5a380.netlify.app/game?inviter=${inviter}&invitee=${invitee}&score=${user.score}`;
 
     // Store invitation in DB
     const newInvite = new Invitation({ inviter, score: user.score, invitee });
