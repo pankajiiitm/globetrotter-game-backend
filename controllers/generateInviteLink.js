@@ -7,9 +7,13 @@ export const generateInviteLink = async (req, res) => {
 
   try {
     const user = await User.findOne({ username: invitee });
-    if (!user) return res.status(404).json({ message: 'User not found' });
+    // if (!user) return res.status(404).json({ message: 'User not found' });
+    if (!user) {
+          user = new User({ username: invitee, score: 0 });
+          await user.save();
+        }
 
-    const inviteLink = `https://localhost:3000/game?inviter=${inviter}&score=${user.score}`;
+    const inviteLink = `https://localhost:3000/game?inviter=${inviter}&invitee=${invitee}&score=${user.score}`;
 
     // Store invitation in DB
     const newInvite = new Invitation({ inviter, score: user.score , invitee});
